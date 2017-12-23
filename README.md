@@ -3,6 +3,10 @@ A Java command line utility that will query for job statuses on a Jenkins server
 
 This project serves a *very* specific use case. That is, to query for the status of all jobs on a Jenkins server, and relay that information to the Particle Cloud API. It exists so that a Particle IoT device can receive such events through Particle's subscription service. Chances are, you have no need for such a specific project. If, by chance, you do... well... here you go!
 
+# Format of the Data Sent to the Particle Cloud API
+
+There is a specific format for the data published to a subscription on the Particle Cloud. It is an intentionally small payload. The format of the data is simply: `"<Build Status>:<Job Name>"`. For example: `"SUCCESS:MyJenkinsJob"`.
+
 # Building the App
 
 From your terminal, navigate into the `jacksonsync` directory. Then simply run `./gradlew clean build`.
