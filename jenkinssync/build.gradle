@@ -1,0 +1,70 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "net.ltgt.gradle:gradle-apt-plugin:0.13"
+    }
+}
+
+group 'com.ericschlenz'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'idea'
+apply plugin: "net.ltgt.apt-idea"
+
+sourceCompatibility = 1.8
+mainClassName = "com.ericschlenz.jenkinssync.Main"
+
+repositories {
+    mavenCentral()
+    maven { url 'http://clojars.org/repo/'}
+}
+
+idea {
+    project {
+        // experimental: whether annotation processing will be configured in the IDE; only actually used with the 'idea' task.
+        configureAnnotationProcessing = true
+    }
+    module {
+        apt {
+            // whether generated sources dirs are added as generated sources root
+            addGeneratedSourcesDirs = true
+            // whether the apt and testApt dependencies are added as module dependencies
+            addAptDependencies = true
+
+            // The following are mostly internal details; you shouldn't ever need to configure them.
+            // whether the compileOnly and testCompileOnly dependencies are added as module dependencies
+            addCompileOnlyDependencies = false // defaults to true in Gradle < 2.12
+            // the dependency scope used for apt and/or compileOnly dependencies (when enabled above)
+            mainDependenciesScope = "PROVIDED" // defaults to "COMPILE" in Gradle < 3.4, or when using the Gradle integration in IntelliJ IDEA
+        }
+    }
+}
+
+dependencies {
+    compile 'org.apache.commons:commons-lang3:3.6'
+    compile 'org.apache.logging.log4j:log4j-api:2.9.1'
+    compile 'org.apache.logging.log4j:log4j-core:2.9.1'
+    compile 'com.google.dagger:dagger:2.12'
+    compile 'args4j:args4j:2.33'
+    compile 'com.mashape.unirest:unirest-java:1.4.9'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.6.6'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.6.6'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.6.6'
+
+    compileOnly 'javax.inject:javax.inject:1'
+    apt 'com.google.dagger:dagger-compiler:2.12'
+
+    testCompile 'junit:junit:4.11'
+}
+
+run {
+    if ( project.hasProperty("appArgs") ) {
+        args Eval.me(appArgs)
+    }
+}
