@@ -71,6 +71,6 @@ fabric.properties
 # Java class files
 *.class
 
-tmonitor/out
-tmonitor/build
-tmonitor/src/dagger
+jenkinssync/out
+jenkinssync/build
+jenkinssync/src/dagger
