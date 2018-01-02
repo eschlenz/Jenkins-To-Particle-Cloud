@@ -5,7 +5,19 @@ This project serves a *very* specific use case. That is, to query for the status
 
 # Format of the Data Sent to the Particle Cloud API
 
-There is a specific format for the data published to a subscription on the Particle Cloud. It is an intentionally small payload. The format of the data is simply: `"<Build Status>:<Job Name>"`. For example: `"SUCCESS:MyJenkinsJob"`.
+There is a specific format for the data published to a subscription on the Particle Cloud. It is an intentionally small payload, and simply contains a zero padded, colon delimited set of counts for each possible build status. 
+
+The format of the data is simply: `"%03d:%03d:%03d:%03d:%03d:%03d"`. 
+For example: `035:001:000:001:000:001`. 
+
+Breaking that formatted String down, it means:
+
+* There are `35` jobs with their last job status being: `SUCCESS`
+* There is `1` job with its last job status being: `FAILURE`
+* There are `0` jobs with their last job status being: `UNSTABLE`
+* There is `1` job with its last job status being: `ABORTED`
+* There are `0` jobs with their last job status being: `NOT_BUILT`
+* There is `1` job with its last job status being: `UNKNOWN` (possibly never built, so there is no "last build")
 
 # Building the App
 
