@@ -29,12 +29,4 @@ public class JacksonHelper {
     public ObjectMapper getObjectMapper() {
         return objMapper;
     }
-
-    public <R, C extends Class<R>> R fromJson(String jsonStr, C type) throws IOException {
-        return objMapper.reader(type).readValue(jsonStr);
-    }
-
-    public String toJson(Object obj) throws JsonProcessingException {
-        return objMapper.writer().writeValueAsString(obj);
-    }
 }

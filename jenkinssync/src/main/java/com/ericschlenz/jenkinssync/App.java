@@ -1,7 +1,9 @@
 package com.ericschlenz.jenkinssync;
 
 import com.ericschlenz.jenkinssync.client.JenkinsClient;
+import com.ericschlenz.jenkinssync.client.JenkinsClientException;
 import com.ericschlenz.jenkinssync.client.ParticleClient;
+import com.ericschlenz.jenkinssync.client.ParticleClientException;
 import com.ericschlenz.jenkinssync.domain.Job;
 import com.ericschlenz.jenkinssync.domain.JobSet;
 import javax.inject.Singleton;
@@ -21,13 +23,20 @@ public class App {
     }
 
     public void start() {
-        JobSet jobSet = jenkinsClient.getJobSet();
-        L.debug("Found {} jobs.", jobSet.getJobs().size());
+        JobSet jobSet;
 
-        for (int i=0; i < jobSet.getJobs().size(); i++) {
-            Job job = jobSet.getJobs().get(i);
-            L.debug("Publishing job status to Particle Cloud API #{}: {}", i, job);
-            L.debug("Response from Particle Cloud API: {}", particleClient.publishEvent(jobSet.getJobs().get(i)));
+        try {
+            jobSet = jenkinsClient.getJobSet();
+            L.debug("Found {} jobs.", jobSet.getJobs().size());
+        } catch (JenkinsClientException e) {
+            L.error("Failed to fetch Jenkins jobs.", e);
+            return;
+        }
+
+        try {
+            L.debug("Response from Particle Cloud API: {}", particleClient.publishEvent(jobSet));
+        } catch (ParticleClientException e) {
+            L.error("Failed to post update to Particle Cloud API.", e);
         }
     }
 }

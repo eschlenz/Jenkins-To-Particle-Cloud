@@ -1,9 +1,7 @@
 package com.ericschlenz.jenkinssync.client;
 
 import com.ericschlenz.jenkinssync.Environment;
-import com.ericschlenz.jenkinssync.domain.Job;
-import com.ericschlenz.jenkinssync.domain.ParticlePublish;
-import com.ericschlenz.jenkinssync.domain.ParticleResponse;
+import com.ericschlenz.jenkinssync.domain.*;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import javax.inject.Singleton;
@@ -18,7 +16,6 @@ public class ParticleClientImpl implements ParticleClient {
     private static final String HEADER_AUTHORIZATION_VALUE = "Bearer %1$s";
     private static final String HEADER_CONTENT_TYPE = "Content-Type";
     private static final String HEADER_CONTENT_TYPE_VALUE = "application/json";
-    private static final String DATA_FORMAT = "%1$s:%2$s";
 
     private final Environment environment;
 
@@ -27,16 +24,17 @@ public class ParticleClientImpl implements ParticleClient {
     }
 
     @Override
-    public ParticleResponse publishEvent(Job job) {
+    public ParticleResponse publishEvent(JobSet jobSet) {
         HttpResponse<ParticleResponse> jsonResponse;
+        ArduinoUpdate arduinoUpdate = createArduinoUpdate(jobSet);
 
         try {
-            String data = String.format(DATA_FORMAT, job.getLastBuild().getResult(), job.getName());
-            L.debug("Publishing event with data: {}", data);
+            String formattedStatus = arduinoUpdate.getFormattedStatuses();
+            L.debug("Publishing event with data: {}", formattedStatus);
 
             ParticlePublish particlePublish = new ParticlePublish();
             particlePublish.setName(environment.getParticleName());
-            particlePublish.setData(data);
+            particlePublish.setData(formattedStatus);
             particlePublish.setTtl(environment.getParticleTtl());
             particlePublish.setPrivate(true);
 
@@ -46,9 +44,32 @@ public class ParticleClientImpl implements ParticleClient {
                 body(particlePublish).
                 asObject(ParticleResponse.class);
         } catch (Exception e) {
-            throw new JenkinsClientException("Failed to publish event to Particle Cloud API.", e);
+            throw new ParticleClientException("Failed to publish event to Particle Cloud API.", e);
         }
 
         return jsonResponse.getBody();
+    }
+
+    private ArduinoUpdate createArduinoUpdate(JobSet jobSet) {
+        ArduinoUpdate arduinoUpdate = new ArduinoUpdate();
+
+        for (Job job : jobSet.getJobs()) {
+            if (job == null) {
+                L.warn("One or more jobs are null.");
+                continue;
+            }
+
+            L.debug("Updating data for job: {}", job);
+
+            LastBuild lastBuild = job.getLastBuild();
+
+            if (lastBuild == null) {
+                lastBuild = LastBuild.UNKNOWN;
+            }
+
+            arduinoUpdate.update(lastBuild);
+        }
+
+        return arduinoUpdate;
     }
 }
